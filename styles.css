@@ -1,0 +1,611 @@
+:root{
+  --bg:#0a0f1f; --bg-2:#0d1730; --text:#eaf6ff; --muted:#95b3d1;
+  --cyan:#29d8ff; --magenta:#e26bff; --card:rgba(9,20,50,.6);
+  --glass:rgba(255,255,255,.06); --border:rgba(41,216,255,.35);
+  --shadow:0 0 40px rgba(41,216,255,.25), 0 0 90px rgba(226,107,255,.15);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family:'Inter','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 800px at 70% -10%, rgba(41,216,255,.12), transparent 55%),
+    radial-gradient(1000px 700px at -10% 10%, rgba(226,107,255,.12), transparent 60%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  overflow-x:hidden;
+}
+
+.stars{ position:fixed; inset:0; pointer-events:none; background-image:
+  radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,.6), transparent 60%),
+  radial-gradient(1.5px 1.5px at 30% 80%, rgba(255,255,255,.4), transparent 60%),
+  radial-gradient(1.8px 1.8px at 80% 30%, rgba(255,255,255,.5), transparent 60%),
+  radial-gradient(1.2px 1.2px at 60% 60%, rgba(255,255,255,.3), transparent 60%);
+  opacity:.35; filter:blur(.2px);
+}
+
+.container{ width:min(1200px,92vw); margin:0 auto; }
+
+/* Header */
+header{ position:sticky; top:0; backdrop-filter:saturate(120%) blur(8px);
+  background:linear-gradient(180deg, rgba(7,10,24,.8), rgba(7,10,24,.2));
+  border-bottom:1px solid var(--border); z-index:10; }
+.nav{ display:flex; align-items:center; justify-content:space-between; padding:18px 0; }
+.logo{ font-weight:800; letter-spacing:1px; font-size:26px; color:var(--cyan); text-shadow:0 0 14px rgba(41,216,255,.5); }
+.menu{ display:flex; gap:18px; }
+.menu a{ color:var(--muted); text-decoration:none; font-weight:600; font-size:14px; padding:8px 12px; border:1px solid transparent; border-radius:10px; }
+.menu a:hover{ color:var(--text); border-color:var(--border); background:var(--glass); box-shadow:var(--shadow); }
+.nav-btn{ background:transparent; border:0; color:var(--muted); font-weight:600; font-size:14px; padding:8px 12px; border-radius:10px; cursor:pointer; }
+.nav-btn:hover{ color:var(--text); border:1px solid var(--border); background:var(--glass); box-shadow:var(--shadow); }
+
+/* Hero */
+.hero{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:36px; align-items:center; padding:56px 0 28px; }
+.eyebrow{ color:var(--magenta); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; font-size:14px; }
+h1{ font-size:clamp(32px,5vw,52px); margin:8px 0 10px; line-height:1.06; text-shadow:0 0 20px rgba(41,216,255,.35); }
+.subtitle{ color:var(--muted); margin-bottom:22px; }
+
+.cta-row{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin:16px 0 18px; }
+.btn{ background:linear-gradient(90deg, rgba(41,216,255,.9), rgba(226,107,255,.9)); color:#051019; padding:12px 18px; border-radius:12px; font-weight:800; border:0; box-shadow:var(--shadow); cursor:pointer; letter-spacing:.2px; }
+.btn:active{ transform:translateY(1px); }
+
+.code-input{ display:flex; gap:10px; align-items:center; }
+.digit{ width:40px; height:44px; border-radius:10px; background:var(--glass); border:1px solid var(--border); color:var(--text); font-weight:800; text-align:center; font-size:20px; outline:none; box-shadow:inset 0 0 0 1px rgba(41,216,255,.12); }
+.progress{ margin-top:10px; display:flex; align-items:center; gap:10px; color:var(--muted); font-weight:600; }
+.dots{ display:flex; gap:8px; }
+.dot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.18); box-shadow:0 0 0 1px rgba(255,255,255,.08) inset; }
+.dot.is-active{ background:var(--cyan); box-shadow:0 0 10px rgba(41,216,255,.9); }
+
+/* ---------- Glyph Vault ---------- */
+.vault{
+  margin:14px 0 6px;
+  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+}
+.slot{
+  position:relative; background:var(--glass); border:1px solid var(--border);
+  border-radius:14px; min-height:110px; display:grid; grid-template-rows:auto 1fr;
+  padding:10px; overflow:hidden; box-shadow:var(--shadow);
+}
+.slot-header{ font-size:12px; font-weight:800; color:var(--muted); letter-spacing:.6px; }
+.glyph{
+  display:grid; place-items:center; border-radius:10px;
+  background:radial-gradient(120px 80px at 50% 0%, rgba(41,216,255,.06), transparent 60%);
+  border:1px dashed rgba(41,216,255,.22); box-shadow:inset 0 0 20px rgba(41,216,255,.12);
+}
+.slot svg{ width:72%; height:auto; display:block; color:var(--cyan); filter:drop-shadow(0 0 12px rgba(41,216,255,.45)); }
+.lock{
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-weight:800; font-size:12px; letter-spacing:1.4px; color:rgba(234,246,255,.55);
+  background:linear-gradient(180deg, rgba(7,10,24,.65), rgba(7,10,24,.25));
+  border-radius:14px; border:1px solid rgba(41,216,255,.25); text-shadow:0 0 8px rgba(41,216,255,.35);
+  backdrop-filter:blur(2px) saturate(120%);
+}
+.slot.is-found .lock{ animation:vaultFade .35s ease forwards; }
+@keyframes vaultFade{ to{ opacity:0; visibility:hidden; } }
+@keyframes glyphPop{ 0%{ transform:scale(.8); opacity:0; } 100%{ transform:scale(1); opacity:1; } }
+
+/* ---------- Hologram Cube (6면) ---------- */
+.holo{
+  --cube:260px; --half:calc(var(--cube)/2);
+  position:relative; aspect-ratio:1.2/1; display:grid; place-items:center;
+  perspective:900px; perspective-origin:50% 42%;
+}
+.ring{
+  position:absolute; bottom:10%; width:70%; height:18%; border-radius:50%;
+  box-shadow:0 0 40px rgba(41,216,255,.65) inset; filter:blur(1px);
+  border:2px solid rgba(41,216,255,.35);
+}
+.cube-wrap{ transform-style:preserve-3d; animation:float 6s ease-in-out infinite; }
+.cube{
+  position:relative; width:var(--cube); height:var(--cube); transform-style:preserve-3d;
+  animation:spin 18s linear infinite; filter:drop-shadow(0 0 18px rgba(41,216,255,.45));
+}
+.face{
+  position:absolute; inset:0; border-radius:14px;
+  border:2px solid rgba(41,216,255,.78);
+  background:linear-gradient(180deg, rgba(41,216,255,.08), rgba(226,107,255,.06));
+  box-shadow:0 0 36px rgba(41,216,255,.25), inset 0 0 28px rgba(41,216,255,.18);
+  backface-visibility:hidden;
+}
+.face::after{ content:""; position:absolute; inset:12px; border:1px dashed rgba(41,216,255,.45); border-radius:10px; }
+.f-front{  transform:translateZ(var(--half)); }
+.f-back{   transform:rotateY(180deg) translateZ(var(--half)); }
+.f-right{  transform:rotateY(90deg) translateZ(var(--half)); }
+.f-left{   transform:rotateY(-90deg) translateZ(var(--half)); }
+.f-top{    transform:rotateX(90deg) translateZ(var(--half)); }
+.f-bottom{ transform:rotateX(-90deg) translateZ(var(--half)); }
+
+.cube--inner{ position:absolute; inset:0; transform-style:preserve-3d; transform:scale(.82); filter:drop-shadow(0 0 10px rgba(41,216,255,.3)); }
+.cube--inner .face{ border-color:rgba(41,216,255,.55); background:radial-gradient(circle at 40% 30%, rgba(41,216,255,.08), transparent 60%); }
+.cube--inner .face::after{ border-style:dashed; opacity:.9; }
+
+@keyframes spin{ 0%{ transform:rotateX(-18deg) rotateY(30deg); } 100%{ transform:rotateX(-18deg) rotateY(390deg);} }
+@keyframes float{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-10px);} }
+
+/* Cards */
+.cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; padding:28px 0 56px; }
+.card{ background:var(--glass); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow); min-height:120px; position:relative; overflow:hidden; }
+.card h3{ margin:6px 0 6px; font-size:18px; }
+.card p{ margin:0; color:var(--muted); font-size:13px; }
+.icon{ width:36px; height:36px; border-radius:12px; background-size: cover; background-position: center; background-repeat: no-repeat;}
+.footer{ padding:26px 0 60px; color:var(--muted); text-align:center; }
+
+/* Clickable cards */
+.card[role="button"]{ cursor:pointer; }
+.card[role="button"]:hover{ transform:translateY(-4px); transition:transform .18s ease; }
+.card[role="button"]:focus{ outline:3px solid rgba(41,216,255,.12); box-shadow:0 0 20px rgba(41,216,255,.12); }
+
+/* 완료된 문제 카드: 살짝 흐리게 표시 */
+.card.is-complete { opacity: 0.6; filter: grayscale(.08) brightness(.92); transition: opacity .18s ease, filter .18s ease; }
+.card.is-complete .icon { filter: grayscale(.4) brightness(.9); }
+
+/* Modal */
+.modal{ position:fixed; inset:0; display:none; place-items:center; background:rgba(2,6,12,0.6); z-index:40; padding:24px; }
+.modal.show{ display:grid; }
+.modal-content{ width:min(720px,92vw); background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; box-shadow:var(--shadow); color:var(--text); }
+.modal-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.modal-title{ font-weight:800; font-size:18px; color:var(--cyan); }
+.modal-body{ color:var(--muted); font-size:14px; line-height:1.5; }
+.modal-close{ background:transparent; border:1px solid rgba(255,255,255,.06); color:var(--muted); padding:6px 10px; border-radius:8px; cursor:pointer; }
+.modal-close:focus{ outline:2px solid var(--cyan); }
+
+/* 미션 시작 버튼 효과 */
+.btn.mission-start {
+  position: relative;
+  animation: pulse 2s infinite;
+  background: linear-gradient(90deg, rgba(41,216,255,.9), rgba(226,107,255,.9));
+}
+
+.btn.mission-start::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  z-index: -1;
+  opacity: 0.5;
+  animation: pulse 2s infinite;
+}
+
+.btn.mission-start.clicked {
+  animation: none;
+}
+
+.btn.mission-start.clicked::after {
+  display: none;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* 웹툰 모달 스타일 */
+.webtoon-modal .modal-content {
+  width: min(1000px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.webtoon-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.webtoon-modal .modal-body {
+  text-align: center;
+}
+
+.start-notice {
+  color: var(--cyan);
+  font-weight: 700;
+  font-size: 18px;
+  margin: 10px 0;
+  line-height: 1.6;
+}
+
+/* 문양 카드 그리드 모달 스타일 */
+.glyph-grid-modal .modal-content {
+  width: min(1400px, 98vw);
+  max-height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.glyph-grid-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.glyph-grid-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);   /* 4열 */
+  grid-auto-rows: 1fr;                      /* 높이 균일 */
+  gap: 18px;
+  width: min(900px, 95%);                   /* 레이아웃 폭 조정 */
+  margin: 0 auto;
+}
+
+.glyph-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all .2s ease;
+  position: relative;
+  opacity: 1;
+}
+
+.glyph-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--cyan);
+}
+
+.glyph-card.selected {
+  border-color: var(--magenta);
+  background: rgba(226, 107, 255, 0.1);
+  box-shadow: 0 0 20px rgba(226, 107, 255, 0.4);
+}
+
+.glyph-card.selected::after {
+  content: attr(data-order);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: var(--magenta);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #051019;
+  font-weight: 800;
+  font-size: 16px;
+  animation: orderPop .3s ease;
+}
+
+.glyph-card.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@keyframes orderPop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.glyph-card svg {
+  width: 80%;
+  height: auto;
+  color: var(--cyan);
+  filter: drop-shadow(0 0 12px rgba(41,216,255,.45));
+}
+
+.selection-tracker {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 15px;
+  min-height: 60px;
+  display: flex;
+  flex-direction: row;        /* 🔥 세로 → 가로 */
+  align-items: center;        /* 세로 중앙 정렬 */
+  justify-content: center;    /* 전체를 가운데로 */
+  gap: 16px;                  /* "선택 3/3"과 칩 사이 간격 */
+}
+
+#selectedGlyphsDisplay {
+  display: flex;
+  gap: 8px;  
+  align-items: center;
+}
+
+.selection-tracker-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(41, 216, 255, 0.10);
+  border: 1px solid rgba(41, 216, 255, 0.4);
+}
+
+.selection-tracker-label {
+  color: var(--cyan);
+  font-weight: 700;
+  min-width: 50px;
+}
+
+.selection-tracker-value {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 4px 8px;
+  background: rgba(41, 216, 255, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(41, 216, 255, 0.3);
+}
+
+.answer-btn {
+  background: linear-gradient(90deg, rgba(41,216,255,.9), rgba(226,107,255,.9));
+  color: #051019;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  border: 0;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  letter-spacing: .2px;
+  transition: all .2s ease;
+  width: 100%;
+}
+
+.answer-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.answer-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.answer-btn.correct {
+  background: linear-gradient(90deg, rgba(0, 200, 100, 0.9), rgba(0, 255, 150, 0.9));
+  animation: pulse-success 0.6s ease;
+  pointer-events: none;
+}
+
+.answer-btn.incorrect {
+  background: linear-gradient(90deg, rgba(255, 100, 100, 0.9), rgba(255, 50, 50, 0.9));
+  animation: shake 0.4s ease;
+}
+
+@keyframes pulse-success {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.result-message {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  display: none;
+}
+
+.result-message.show {
+  display: block;
+  animation: resultSlideIn .3s ease;
+}
+
+.result-message.correct {
+  background: rgba(0, 200, 100, 0.2);
+  color: #00ff9a;
+  border: 1px solid rgba(0, 200, 100, 0.5);
+}
+
+.result-message.incorrect {
+  background: rgba(255, 100, 100, 0.2);
+  color: #ff6464;
+  border: 1px solid rgba(255, 100, 100, 0.5);
+}
+
+@keyframes resultSlideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width:1200px){
+  .glyph-grid-wrapper {
+    flex-direction: column;
+  }
+  .harmonia-section {
+    flex: 1;
+    width: 100%;
+  }
+  .harmonia-image {
+    min-height: 400px;
+  }
+}
+@media (max-width:980px){
+  .hero{ grid-template-columns:1fr; }
+  .holo{ order:-1; --cube:210px; }
+  .cards{ grid-template-columns:1fr 1fr; }
+}
+@media (max-width:560px){
+  .menu{ display:none; }
+  .cards{ grid-template-columns:1fr; }
+  .digit{ width:36px; height:40px; }
+  .vault{ grid-template-columns:repeat(2,1fr); }
+  .glyph-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* 첫번째 기억 카드 아이콘 */
+#hud .icon {
+  background-image: url("cube1.png");
+}
+
+/* 두번째 기억 카드 아이콘 */
+#memory .icon {
+  background-image: url("cube2.png");
+}
+
+/* 세번째 기억 카드 아이콘 */
+#vital .icon {
+  background-image: url("cube3.png");
+}
+
+/* 문제 4번 카드 아이콘 */
+#tracker .icon {
+  background-image: url("cube4.png");
+}
+/* ===== 슬라이드 퍼즐 (4번째 기억) ===== */
+
+.slide-modal .modal-content {
+  width: min(520px, 95vw);
+  max-height: 90vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.slide-puzzle-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 3×3 퍼즐 그리드 */
+.slide-grid {
+  width: min(360px, 80vw);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.slide-tile {
+  background-image: url("./codex_pattern.png"); /* 코덱스 문양 전체 이미지 */
+  background-size: 300% 300%;                  /* 3등분 */
+  background-repeat: no-repeat;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+
+.slide-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(41,216,255,.6);
+}
+
+/* 빈 칸 */
+.slide-tile.empty {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+  cursor: default;
+}
+
+.slide-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+/* 문양 슬롯이 열릴 때 효과 */
+.slot.slot-reveal {
+  animation: slotReveal 1s ease-out;
+}
+
+@keyframes slotReveal {
+  0% {
+    transform: scale(0.7);
+    box-shadow: 0 0 0 rgba(41,216,255,0);
+  }
+  60% {
+    transform: scale(1.2);
+    box-shadow: 0 0 30px rgba(41,216,255,0.85);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: var(--shadow);
+  }
+}
+
+/* 카드 아이콘이 완성될 때 반짝이는 효과 */
+.card.reveal-icon .icon {
+  animation: iconGlow 1s ease-out;
+}
+
+@keyframes iconGlow {
+  0% {
+    transform: scale(0.6);
+    box-shadow: 0 0 0 rgba(226,107,255,0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 16px rgba(41,216,255,0.5) inset;
+  }
+}
+
+/* 진행 점 하나가 켜질 때 효과 */
+.dot.dot-flash {
+  animation: dotFlash .6s ease-out;
+}
+
+@keyframes dotFlash {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== 첫번째 기억 정답 후 QR 보상 ===== */
+.qr-reward {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  display: none;                 /* 기본 숨김 */
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.qr-reward.show {
+  display: flex;
+}
+
+.qr-image {
+  max-width: 260px;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.qr-text {
+  color: var(--muted);
+  font-size: 13px;
+}
