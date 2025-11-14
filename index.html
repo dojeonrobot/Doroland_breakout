@@ -799,6 +799,21 @@ slideModal.addEventListener('click', e => {
     const modalClose = document.getElementById('modalClose');
     const glyphModalClose = glyphGridModal.querySelector('.modal-close');
     let lastFocusedCard = null;
+    
+    // 모달 닫기 버튼 및 백그라운드 클릭 바인딩
+    if (modalClose) modalClose.addEventListener('click', closeModal);
+    if (modal) modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    if (glyphModalClose) glyphModalClose.addEventListener('click', closeGlyphModal);
+    if (glyphGridModal) glyphGridModal.addEventListener('click', e => { if (e.target === glyphGridModal) closeGlyphModal(); });
+    // ESC로 닫기 (모달이 열린 경우)
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (modal.classList.contains('show')) closeModal();
+        if (glyphGridModal.classList.contains('show')) closeGlyphModal();
+        if (qrModal && qrModal.classList.contains('show')) closeQRModal();
+        if (slideModal && slideModal.classList.contains('show')) closeSlideModal();
+      }
+    });
 
     function openModalFor(id){
       const data = contents[id] || { title:'정보', html:'<p>관련 정보 없음.</p>' };
