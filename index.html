@@ -12,11 +12,32 @@
   <!-- 여기서 외부 CSS 파일을 불러옴 -->
   <link rel="stylesheet" href="styles.css">
   <style>
+    /* 앞면 안쪽 2x2 패턴 그리드 */
+    .cube-pattern-grid {
+      position: absolute;
+      inset: 18px;                            /* 테두리 안쪽으로 살짝 여백 */
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 0;
+    }
+
+    .cube-cell {
+      background-repeat: no-repeat;
+      background-size: 100% 100%;            /* 여기서가 말한 50% 역할: 셀 자체가 1/4 영역 */
+      background-position: center;
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+
+    .cube-cell.is-unlocked {
+      opacity: 1;
+    }
+
     /* 큐브 면 기본 스타일 (패턴은 JS로 조절하여 각 면의 일부만 보이게 함) */
     .cube .face {
       background-color: rgba(10,18,34,0.6);
       background-repeat: no-repeat;
-      /* 패턴을 크게 잡아(4분할) 정확한 영역을 선택하도록 함 */
       background-size: 400% 400%;
       background-position: 50% 50%;
       border: 1px solid rgba(41,216,255,0.12);
@@ -25,22 +46,19 @@
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
       transition: background-position .38s ease, opacity .28s ease, filter .28s ease;
-      opacity: 0.28; /* 초기에는 희미하게 보임 */
+      opacity: 0.28;
       filter: grayscale(.4) brightness(.9);
     }
 
-    /* unlocked 되었을 때 선명하게 보이도록 */
     .cube .face.face-unlocked {
       opacity: 1;
-      filter: grayscale(.05) brightness(1.02) contrast(1.03);
-      box-shadow: 0 0 40px rgba(41,216,255,.12) inset;
+      filter: none;                   /* 회색/밝기 필터 제거 */
+      background-color: transparent;  /* 어두운 배경 제거 */
+      background-blend-mode: normal;  /* overlay 블렌딩 끄기 */
+      box-shadow: 0 0 40px rgba(41,216,255,.25) inset;
     }
 
-    /* 내부 면(겹쳐 보이는 부분)은 조금 더 흐리게 */
-    .cube--inner .face {
-      opacity: 0.6;
-      transform: translateZ(6px);
-    }
+
 
     /* Vault 슬롯 내 문양 영역 (패턴의 일부를 보여주기 위해 배경으로 처리) */
     .vault .slot {
@@ -128,21 +146,22 @@
         <div class="ring"></div>
         <div class="cube-wrap">
           <div class="cube" role="img" aria-label="회전하는 홀로그램 큐브">
-            <div class="face f-front"></div>
+            <!-- 앞면: 기본 홀로그램 프레임 + 안쪽에 2x2 문양 셀 -->
+            <div class="face f-front">
+              <div class="cube-pattern-grid">
+                <div class="cube-cell cube-cell-1"></div>
+                <div class="cube-cell cube-cell-2"></div>
+                <div class="cube-cell cube-cell-3"></div>
+                <div class="cube-cell cube-cell-4"></div>
+              </div>
+            </div>
+
+            <!-- 나머지 면은 그대로 -->
             <div class="face f-back"></div>
             <div class="face f-right"></div>
             <div class="face f-left"></div>
             <div class="face f-top"></div>
             <div class="face f-bottom"></div>
-
-            <div class="cube--inner">
-              <div class="face f-front"></div>
-              <div class="face f-back"></div>
-              <div class="face f-right"></div>
-              <div class="face f-left"></div>
-              <div class="face f-top"></div>
-              <div class="face f-bottom"></div>
-            </div>
           </div>
         </div>
       </div>
@@ -205,7 +224,7 @@
         </p>
 
         <!-- ✅ 여기 새로 추가 -->
-        <button class="btn mission-start" type="button">
+        <button id="missionStartBtn" class="btn mission-start" type="button">
           미션 시작
         </button>
       </div>
@@ -232,12 +251,12 @@
   <div id="qrModal" class="modal qr-modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-content" role="document" style="max-width:420px;">
       <div class="modal-header">
-        <div class="modal-title">첫번째 기억 - QR 코드</div>
+        <div class="modal-title">두번째 기억 QR</div>
         <div><button id="qrClose" class="modal-close" aria-label="닫기">닫기</button></div>
       </div>
       <div class="modal-body" style="text-align:center;">
-        <img id="qrImage" src="./1번qr.png" alt="첫번째 기억 QR 코드" style="max-width:88%;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.5)">
-        <p style="color:var(--muted);margin-top:10px;">QR 코드를 스캔해 다음 기억을 확인하세요.</p>
+        <img id="qrImage" src="./1번qr.png" alt="QR 코드" style="max-width:88%;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.5)">
+        <p style="color:var(--muted);margin-top:10px;" id="qrMessage">QR 코드를 스캔해 다음 기억을 확인하세요.</p>
         <div style="margin-top:12px;">
           <button id="qrConfirmBtn" class="btn" type="button">확인</button>
         </div>
@@ -270,6 +289,35 @@
   <script>
     // pattern 이미지 경로 (프로젝트 폴더에 codex_pattern.png 넣어두세요)
     const patternURL = './codex_pattern.png';
+    
+
+    // 페이지 로드 시 웹툰 모달 자동 열기
+    const webtoonModal = document.getElementById('webtoonModal');
+    function openWebtoonModal() {
+      webtoonModal.classList.add('show');
+      webtoonModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // 미션 시작 버튼: 웹툰 모달 닫고 메인 페이지 표시
+    const missionStartBtn = document.getElementById('missionStartBtn');
+    if (missionStartBtn) {
+      missionStartBtn.addEventListener('click', () => {
+        missionStartBtn.classList.add('clicked');
+        webtoonModal.classList.remove('show');
+        webtoonModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        // 배경음악 재생 시도
+        if (bgmEl.paused) bgmEl.play().catch(()=>{});
+        // 첫번째 기억 QR 모달 열기 (문양 획득 없이 QR만 보여줌)
+        setTimeout(() => openQRModalInfo(1, '첫번째 기억', './1번qr.png'), 300);
+      });
+    }
+
+    // 페이지 로드 완료 후 자동 실행
+    window.addEventListener('load', () => {
+      setTimeout(() => openWebtoonModal(), 300);
+    });
 
     // 배경음악 설정 (파일: bgm.mp3 를 같은 폴더에 넣으세요)
     const bgmEl = document.createElement('audio');
@@ -291,43 +339,36 @@
     const patternForStep = {
       1: './codex_pattern_1-1.png',
       2: './codex_pattern_1-2.png',
-      3: './codex_pattern_1-3.png',
-      4: './codex_pattern_1-4.png'
+      3: './codex_pattern_2-1.png',
+      4: './codex_pattern_2-2.png'
     };
+
+    const cubeCells = [
+      document.querySelector('.cube .cube-cell-1'),
+      document.querySelector('.cube .cube-cell-2'),
+      document.querySelector('.cube .cube-cell-3'),
+      document.querySelector('.cube .cube-cell-4')
+    ];
 
     // 큐브 face 매핑 (필요시 셀렉터를 조정)
     const faceMap = { 1: '.cube .f-front', 2: '.cube .f-right', 3: '.cube .f-top', 4: '.cube .f-back' };
 
     // 큐브 면별 미세 위치 보정 (background-position) — 필요하면 값 조정
     const cubeFacePos = {
-      1: '50% 50%',
-      2: '50% 50%',
-      3: '50% 50%',
-      4: '50% 50%'
+      1: '0% 0%',     // 좌상단
+      2: '100% 100%',   // 우상단
+      3: '100% 0%',   // 좌하단
+      4: '0% 100%'  // 우하단
     };
 
     // 슬롯과 큐브에서 사용할 background-size — 필요시 'cover'/'contain' 또는 퍼센트로 변경
     const SLOT_BG_SIZE = 'cover';
-    const CUBE_BG_SIZE = 'cover';
-
-    // 조정 가능한 기준 값 (필요하면 숫자만 바꿔서 미세조정하세요)
-    // const SLOT_BG_SIZE = '400% 400%';    // 슬롯에서 패턴을 얼마나 크게 잡을지
-    // const CUBE_BG_SIZE = '350% 350%';    // 큐브에서 패턴 크기 (3D 보정 때문에 슬롯과 다를 수 있음)
-
-    // 더 정밀한 위치 매핑 — 슬롯(왼쪽 그리드)과 큐브(우측 홀로그램)에 각각 다른 포지션을 줍니다.
-    // 필요하면 여기 값을 직접 바꿔서 실시간으로 맞춰보세요.
+    const CUBE_BG_SIZE = '50% 50%';
     const slotPatternPos = {
-      1: '18% 62%', // 슬롯 #1 - (예: 왼쪽 위의 문양 일부)
-      2: '52% 62%', // 슬롯 #2
-      3: '18% 82%', // 슬롯 #3
-      4: '52% 82%'  // 슬롯 #4
-    };
-
-    const cubePatternPos = {
-      1: '20% 58%', // 큐브 front 보정값
-      2: '78% 58%', // 큐브 right 보정값
-      3: '22% 78%', // 큐브 top 보정값
-      4: '78% 78%'  // 큐브 back 보정값
+      1: '50% 50%', // 슬롯 #1
+      2: '50% 50%', // 슬롯 #2
+      3: '50% 50%', // 슬롯 #3
+      4: '50% 50%'  // 슬롯 #4 
     };
 
     /* ===== Glyph Vault Logic ===== */
@@ -453,18 +494,15 @@
       // 슬롯에 해당 step 전용 이미지 적용 (파일: patternForStep[step])
       const patternSrc = patternForStep[step];
       const glyphEl = slot.querySelector('.glyph');
-      // clear any inline svg content (we show the bitmap piece)
       glyphEl.innerHTML = '';
       glyphEl.style.backgroundImage = patternSrc ? `url('${patternSrc}')` : '';
       glyphEl.style.backgroundSize = SLOT_BG_SIZE;
-      glyphEl.style.backgroundPosition = 'center';
+      glyphEl.style.backgroundPosition = slotPatternPos[step] || '50% 50%';
       glyphEl.style.backgroundRepeat = 'no-repeat';
 
-      // 슬롯 상태 업데이트 & 효과
       slot.classList.add('is-found', 'slot-reveal');
       setTimeout(() => slot.classList.remove('slot-reveal'), 800);
 
-      // 카드(문제)도 완료 표시
       const cardId = idForStep[step];
       if(cardId){
         const cardEl = document.getElementById(cardId);
@@ -475,30 +513,15 @@
         }
       }
 
-      // 슬롯 등장 애니메이션
       glyphEl.style.animation = 'glyphPop .38s ease';
 
-      // 홀로그램 큐브의 해당 면도 이미지로 업데이트
-      const faceSelector = faceMap[step];
-      const faceEl = document.querySelector(faceSelector);
-      if(faceEl && patternSrc){
-        faceEl.style.backgroundImage = `url('${patternSrc}')`;
-        faceEl.style.backgroundSize = CUBE_BG_SIZE;
-        faceEl.style.backgroundPosition = cubeFacePos[step] || '50% 50%';
-        faceEl.style.backgroundRepeat = 'no-repeat';
-        faceEl.classList.add('face-unlocked');
-      }
-      // 내부(inner) 면도 동일 처리(존재하면)
-      const innerFaceEl = document.querySelector('.cube--inner ' + (faceSelector.replace('.cube ','').trim()));
-      if(innerFaceEl && patternSrc){
-        innerFaceEl.style.backgroundImage = `url('${patternSrc}')`;
-        innerFaceEl.style.backgroundSize = CUBE_BG_SIZE;
-        innerFaceEl.style.backgroundPosition = cubeFacePos[step] || '50% 50%';
-        innerFaceEl.style.backgroundRepeat = 'no-repeat';
-        innerFaceEl.classList.add('face-unlocked');
+      // 홀로그램 큐브의 해당 면만 이미지로 업데이트 (외부 face만)
+      const cellEl = cubeCells[step - 1];
+      if (cellEl && patternSrc) {
+        cellEl.style.backgroundImage = `url('${patternSrc}')`;
+        cellEl.classList.add('is-unlocked');
       }
       
-      // 진행도 업데이트
       acquired[step-1] = true;
       const count = acquired.filter(Boolean).length;
   
@@ -507,7 +530,6 @@
         const wasActive = d.classList.contains('is-active');
         d.classList.toggle('is-active', isActive);
   
-        // 새로 켜지는 점에만 flash 효과 주기
         if (isActive && !wasActive) {
           d.classList.add('dot-flash');
           setTimeout(() => d.classList.remove('dot-flash'), 600);
@@ -519,7 +541,7 @@
 
 
   /* ===== 문양 그리드 관련 ===== */
-  const glyphGridModal = document.getElementById('glyphGridModal');
+const glyphGridModal = document.getElementById('glyphGridModal');
 const glyphGridContainer = document.getElementById('glyphGridContainer');
 const glyphPatterns = ['hex', 'spiral', 'tri', 'wave', 'grid', 'star', 'diamond', 'pulse', 'fractal', 'void', 'prism', 'echo'];
 
@@ -556,123 +578,135 @@ function populateGlyphGrid() {
   const resetSlideBtn = document.getElementById('resetSlidePuzzle');
   const slideModalClose = slideModal.querySelector('.modal-close');
 
-  const SLIDE_SIZE = 3;
-  const EMPTY_TILE = 8; // 0~8 중 마지막 칸을 빈칸으로 사용
-
-  let slideBoard = [];  // 현재 퍼즐 상태 (길이 9, 값 0~8)
+  const SLIDE_ROWS = 3; // 행 수
+  const SLIDE_COLS = 4; // 열 수
+  const TOTAL_TILES = SLIDE_ROWS * SLIDE_COLS;
+  const EMPTY_TILE = TOTAL_TILES - 1; // 빈 타일 인덱스
+  let slideBoard = [];  // 현재 퍼즐 상태
 
   // 퍼즐 초기화
   function initSlidePuzzle() {
-    // 해답 상태로 시작
-    slideBoard = [0,1,2,3,4,5,6,7,8];
+    // 정답 상태 배열을 만든 뒤 섞는다
+    slideBoard = Array.from({ length: TOTAL_TILES }, (_, idx) => idx);
     shuffleSlideBoard();
     slideResult.classList.remove('show', 'correct', 'incorrect');
     renderSlideBoard();
   }
 
   // 보드 섞기 (항상 풀 수 있는 상태로)
-function shuffleSlideBoard() {
-  do {
-    slideBoard = [0,1,2,3,4,5,6,7,8];
-    for (let i = slideBoard.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [slideBoard[i], slideBoard[j]] = [slideBoard[j], slideBoard[i]];
-    }
-  } while (!isSlideSolvable(slideBoard) || isSlideSolved(slideBoard));
-}
+  function shuffleSlideBoard() {
+    do {
+      slideBoard = Array.from({ length: TOTAL_TILES }, (_, idx) => idx);
+      for (let i = slideBoard.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [slideBoard[i], slideBoard[j]] = [slideBoard[j], slideBoard[i]];
+      }
+    } while (!isSlideSolvable(slideBoard) || isSlideSolved(slideBoard));
+  }
 
-// 3×3 슬라이드 퍼즐 solvable 체크
-function isSlideSolvable(board) {
-  let inv = 0;
-  for (let i = 0; i < 9; i++) {
-    for (let j = i + 1; j < 9; j++) {
-      if (board[i] === EMPTY_TILE || board[j] === EMPTY_TILE) continue;
-      if (board[i] > board[j]) inv++;
+  // 4열×3행 퍼즐 solvable 체크
+  function isSlideSolvable(board) {
+    let inv = 0;
+    for (let i = 0; i < board.length; i++) {
+      for (let j = i + 1; j < board.length; j++) {
+        if (board[i] === EMPTY_TILE || board[j] === EMPTY_TILE) continue;
+        if (board[i] > board[j]) inv++;
+      }
+    }
+
+    // 가로 칸 수가 홀수일 때 (여긴 지금 4×3이 아니라서 참고만)
+    if (SLIDE_COLS % 2 !== 0) {
+      return inv % 2 === 0;
+    } else {
+      // ✅ 가로 칸 수가 짝수(4×3)일 때 올바른 조건
+      const emptyRowFromBottom =
+        SLIDE_ROWS - Math.floor(board.indexOf(EMPTY_TILE) / SLIDE_COLS);
+      return (inv + emptyRowFromBottom) % 2 === 1;   // ← 0이 아니라 1
     }
   }
-  // 3×3(홀수)에서는 inversion이 짝수면 solvable
-  return inv % 2 === 0;
-}
 
-function isSlideSolved(board) {
-  return board.every((v, i) => v === i);
-}
+  function isSlideSolved(board) {
+    return board.every((v, i) => v === i);
+  }
 
-// 화면에 보드 그리기
-function renderSlideBoard() {
-  slideGrid.innerHTML = '';
+  // 화면에 보드 그리기
+  function renderSlideBoard() {
+    slideGrid.innerHTML = '';
 
-  slideBoard.forEach((tileIndex, pos) => {
-    if (tileIndex === EMPTY_TILE) {
-      const emptyDiv = document.createElement('div');
-      emptyDiv.className = 'slide-tile empty';
-      slideGrid.appendChild(emptyDiv);
-    } else {
+    slideBoard.forEach((tileIndex, pos) => {
       const tile = document.createElement('div');
       tile.className = 'slide-tile';
       tile.dataset.index = tileIndex;
 
-      const row = Math.floor(tileIndex / SLIDE_SIZE);
-      const col = tileIndex % SLIDE_SIZE;
-      // 배경에서 해당 조각 위치 보여주기
-      tile.style.backgroundPosition = `${col * 50}% ${row * 50}%`;
+      if (tileIndex === EMPTY_TILE) {
+        tile.className += ' empty'; // 빈 타일 처리
+      } else {
+        const row = Math.floor(tileIndex / SLIDE_COLS);
+        const col = tileIndex % SLIDE_COLS;
+        // 배경 이미지는 mission_last.png를 분할
+        tile.style.backgroundImage = `url('./mission_last.png')`;
+        const xStep = SLIDE_COLS > 1 ? 100 / (SLIDE_COLS - 1) : 0;
+        const yStep = SLIDE_ROWS > 1 ? 100 / (SLIDE_ROWS - 1) : 0;
+        tile.style.backgroundPosition = `${col * xStep}% ${row * yStep}%`;
+        tile.style.backgroundSize = `${SLIDE_COLS * 100}% ${SLIDE_ROWS * 100}%`; // 이미지 크기 조정
+      }
 
       tile.addEventListener('click', () => handleSlideTileClick(pos));
       slideGrid.appendChild(tile);
-    }
-  });
-}
-
-// 타일 클릭 처리
-function handleSlideTileClick(pos) {
-  const emptyPos = slideBoard.indexOf(EMPTY_TILE);
-  if (!isAdjacentSlide(pos, emptyPos)) return;
-
-  [slideBoard[pos], slideBoard[emptyPos]] = [slideBoard[emptyPos], slideBoard[pos]];
-  renderSlideBoard();
-
-  if (isSlideSolved(slideBoard)) {
-    slideResult.textContent = '🎉 정답입니다! 코덱스 문양이 복원되었습니다.';
-    slideResult.classList.remove('incorrect');
-    slideResult.classList.add('show', 'correct');
-
-    setTimeout(() => {
-      // 4번째 문양 오픈
-      revealGlyph(4, 'star');   // rewardForStep[4]가 'star'인 상태
-      closeSlideModal();
-    }, 1200);
+    });
   }
-}
 
-// 인접(상하좌우) 여부 체크
-function isAdjacentSlide(a, b) {
-  const ax = a % SLIDE_SIZE, ay = Math.floor(a / SLIDE_SIZE);
-  const bx = b % SLIDE_SIZE, by = Math.floor(b / SLIDE_SIZE);
-  return Math.abs(ax - bx) + Math.abs(ay - by) === 1;
-}
+  // 타일 클릭 처리
+  function handleSlideTileClick(pos) {
+    const emptyPos = slideBoard.indexOf(EMPTY_TILE);
+    if (!isAdjacentSlide(pos, emptyPos)) return;
 
-// 모달 열기/닫기
-function openSlideModal() {
-  initSlidePuzzle();
-  slideModal.classList.add('show');
-  slideModal.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-  slideModalClose.focus();
-}
+    [slideBoard[pos], slideBoard[emptyPos]] = [slideBoard[emptyPos], slideBoard[pos]];
+    renderSlideBoard();
 
-function closeSlideModal() {
-  slideModal.classList.remove('show');
-  slideModal.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-  if (lastFocusedCard) lastFocusedCard.focus();
-}
+    if (isSlideSolved(slideBoard)) {
+      slideResult.textContent = '퍼즐을 완성했습니다!';
+      slideResult.classList.remove('incorrect');
+      slideResult.classList.add('show', 'correct');
 
-// 버튼 및 배경 클릭 이벤트
-resetSlideBtn.addEventListener('click', () => initSlidePuzzle());
-slideModalClose.addEventListener('click', closeSlideModal);
-slideModal.addEventListener('click', e => {
-  if (e.target === slideModal) closeSlideModal();
-});
+      setTimeout(() => {
+        // 4번째 문양 획득
+        revealGlyph(4, 'star');   // rewardForStep[4]가 'star'인 상태
+        closeSlideModal();
+      }, 1200);
+    }
+  }
+
+  // 인접(상하좌우) 여부 체크
+  function isAdjacentSlide(a, b) {
+    const ax = a % SLIDE_COLS, ay = Math.floor(a / SLIDE_COLS);
+    const bx = b % SLIDE_COLS, by = Math.floor(b / SLIDE_COLS);
+    return Math.abs(ax - bx) + Math.abs(ay - by) === 1;
+  }
+
+  // 모달 열기/닫기
+  function openSlideModal() {
+    initSlidePuzzle();
+    slideModal.classList.add('show');
+    slideModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    slideModalClose.focus();
+  }
+
+  function closeSlideModal() {
+    slideModal.classList.remove('show');
+    slideModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (lastFocusedCard) lastFocusedCard.focus();
+  }
+
+  // 버튼 및 배경 클릭 이벤트
+  resetSlideBtn.addEventListener('click', () => initSlidePuzzle());
+  slideModalClose.addEventListener('click', closeSlideModal);
+  slideModal.addEventListener('click', e => {
+    if (e.target === slideModal) closeSlideModal();
+  });
+
 
     function selectGlyph(pattern, cardElement, index) {
       if (isAnswerPhase) return;
@@ -752,7 +786,7 @@ slideModal.addEventListener('click', e => {
         // 정답 처리: 잠시 후 QR 모달을 띄우고,
         // 사용자가 '확인'을 누르면 문양을 획득하도록 변경
         setTimeout(() => {
-          openQRModal(1); // step 1의 QR 보상 (이미지: ./1번qr.png)
+          openQRModal(1, '첫번째 기억 QR', './1번qr.png');
         }, 900);
       } else {
         resultMessage.classList.remove('correct');
@@ -785,8 +819,8 @@ slideModal.addEventListener('click', e => {
     /* ===== Modal & 카드/버튼 바인딩 ===== */
     const contents = {
       hud:{ title:'첫번째 기억', type:'glyph' },
-      memory:{ title:'두번째 기억'},
-      vital:{ title:'세번째 기억'},
+      memory:{ title:'두번째 기억', html:'<p>두번째 기억의 내용입니다.</p>' },
+      vital:{ title:'세번째 기억', html:'<p>세번째 기억의 내용입니다.</p>' },
       tracker:{ title:'네번째 기억', type:'slide' },
       hintHud:{ title:'첫번째 기억 힌트', html:'<p>무슨 힌트를 줄까</p>' },
       hintMemory:{ title:'두번째 기억 힌트', html:'<p>무슨 힌트를 줄까.</p>' },
@@ -831,6 +865,24 @@ slideModal.addEventListener('click', e => {
       else {
         modalTitle.textContent = data.title;
         modalBody.innerHTML = data.html;
+        
+        // 특정 모달에 확인 버튼 추가 (2번, 3번 기억)
+        if (id === 'memory' || id === 'vital') {
+          const confirmBtn = document.createElement('button');
+          confirmBtn.className = 'btn';
+          confirmBtn.type = 'button';
+          confirmBtn.textContent = '확인';
+          confirmBtn.style.marginTop = '12px';
+          
+          confirmBtn.addEventListener('click', () => {
+            const step = id === 'memory' ? 2 : 3;
+            revealGlyph(step, rewardForStep[step] || 'hex');
+            closeModal();
+          });
+          
+          modalBody.appendChild(confirmBtn);
+        }
+        
         modal.classList.add('show');
         modal.setAttribute('aria-hidden','false');
         modalClose.focus();
@@ -872,11 +924,33 @@ slideModal.addEventListener('click', e => {
     const qrCloseBtn = document.getElementById('qrClose');
     const qrImage = document.getElementById('qrImage');
 
-    function openQRModal(step) {
+    // QR 정보만 보여주는 모달 (문양 획득 없음 — 미션 시작 시용)
+    function openQRModalInfo(step, title = '', imageSrc = '') {
+      qrModal.dataset.step = String(step || 1);
+      qrModal.dataset.isInfoOnly = 'true';  // 플래그: 문양 획득 없음
+      const qrTitle = qrModal.querySelector('.modal-title');
+      const qrMsg = document.getElementById('qrMessage');
+      if (qrTitle) qrTitle.textContent = title || '기억 - QR 코드';
+      if (imageSrc) qrImage.src = imageSrc;
+      if (qrMsg) qrMsg.textContent = 'QR 코드를 스캔해 다음 기억을 확인하세요.';
+      qrConfirmBtn.textContent = '확인';
+      qrModal.classList.add('show');
+      qrModal.setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+      qrConfirmBtn.focus();
+    }
+
+    function openQRModal(step, title = '', imageSrc = '') {
       // step 인자 보관
       qrModal.dataset.step = String(step || 1);
-      // 이미지는 고정 파일(./1번_qr.png)으로 사용 — 필요 시 경로 매핑 확장 가능
-      qrImage.src = './1번qr.png';
+      qrModal.dataset.isInfoOnly = 'false';  // 플래그: 문양 획득 함
+      // 제목 및 이미지 경로 동적 설정
+      const qrTitle = qrModal.querySelector('.modal-title');
+      const qrMsg = document.getElementById('qrMessage');
+      if (qrTitle) qrTitle.textContent = title || '기억 - QR 코드';
+      if (imageSrc) qrImage.src = imageSrc;
+      if (qrMsg) qrMsg.textContent = 'QR 코드를 스캔해 다음 기억을 확인하세요.';
+      qrConfirmBtn.textContent = '확인';
       qrModal.classList.add('show');
       qrModal.setAttribute('aria-hidden','false');
       document.body.style.overflow = 'hidden';
@@ -892,11 +966,17 @@ slideModal.addEventListener('click', e => {
 
     qrConfirmBtn.addEventListener('click', () => {
       const step = parseInt(qrModal.dataset.step || '1', 10);
-      // QR 확인 후 문양 획득
-      revealGlyph(step, rewardForStep[step] || 'hex');
-      closeQRModal();
-      // 그리고 그리드 모달도 닫기
-      closeGlyphModal();
+      const isInfoOnly = qrModal.dataset.isInfoOnly === 'true';
+      
+      if (isInfoOnly) {
+        // 정보 모달 → QR만 보고 닫기
+        closeQRModal();
+      } else {
+        // 문제 풀이 모달 → QR 본 후 문양 획득
+        revealGlyph(step, rewardForStep[step] || 'hex');
+        closeQRModal();
+        closeGlyphModal();
+      }
     });
 
     qrCloseBtn.addEventListener('click', () => {

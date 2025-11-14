@@ -128,7 +128,14 @@ h1{ font-size:clamp(32px,5vw,52px); margin:8px 0 10px; line-height:1.06; text-sh
 .card{ background:var(--glass); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow); min-height:120px; position:relative; overflow:hidden; }
 .card h3{ margin:6px 0 6px; font-size:18px; }
 .card p{ margin:0; color:var(--muted); font-size:13px; }
-.icon{ width:36px; height:36px; border-radius:12px; background-size: cover; background-position: center; background-repeat: no-repeat;}
+.icon{
+  width:48px;
+  height:48px;
+  border-radius:0;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 .footer{ padding:26px 0 60px; color:var(--muted); text-align:center; }
 
 /* Clickable cards */
@@ -482,19 +489,19 @@ h1{ font-size:clamp(32px,5vw,52px); margin:8px 0 10px; line-height:1.06; text-sh
   gap: 16px;
 }
 
-/* 3×3 퍼즐 그리드 */
+/* 4열 × 3행 퍼즐 그리드 */
 .slide-grid {
   width: min(360px, 80vw);
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 3;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(3, 1fr);
   gap: 4px;
 }
 
 .slide-tile {
   background-image: url("./codex_pattern.png"); /* 코덱스 문양 전체 이미지 */
-  background-size: 300% 300%;                  /* 3등분 */
+  background-size: 400% 300%;                  /* 4열 3행 분할 */
   background-repeat: no-repeat;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -609,3 +616,40 @@ h1{ font-size:clamp(32px,5vw,52px); margin:8px 0 10px; line-height:1.06; text-sh
   color: var(--muted);
   font-size: 13px;
 }
+
+/* 안쪽 큐브 기본(LOCKED 상태): 살짝 흐릿한 홀로그램 패널 */
+.cube--inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: scale(.82);
+  filter: drop-shadow(0 0 10px rgba(41,216,255,.3));
+}
+
+.cube--inner .face {
+  border-radius: 14px;
+  border: 2px solid rgba(41,216,255,.45);
+  background: radial-gradient(circle at 40% 30%, rgba(41,216,255,.2), transparent 70%);
+  opacity: 0.22;
+  filter: none;
+  transition: opacity .3s ease, transform .3s ease;
+}
+
+
+.cube--inner .face::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgba(41,216,255,.55);
+  border-radius: 10px;
+}
+/* UNLOCKED: 코덱스 문양이 들어간 안쪽 큐브 면 */
+.cube--inner .face.face-unlocked {
+  opacity: 1;
+  background-color: rgba(41,216,255,0.05);
+  background-blend-mode: screen;
+  filter: none;
+  box-shadow: 0 0 28px rgba(41,216,255,.22);
+  transition: box-shadow .3s ease;
+}
+
